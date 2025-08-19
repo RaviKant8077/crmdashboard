@@ -1,2 +1,2 @@
 # crmdashboard
-Trying to have crm for the company for learning purpose 
+Trying to learn how the crm is structured and how it work for the company 
