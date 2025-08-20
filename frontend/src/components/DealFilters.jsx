@@ -3,34 +3,109 @@ import { customerApi, userApi } from '../services/api';
 
 const DealFilters = ({ onFilterChange, currentFilters }) => {
   const [customers, setCustomers] = useState([]);
-  const [users, set<thinking>
-The useTasks hook currently does not implement filtering, unlike useDeals which has filtering logic.
+  const [users, setUsers] = useState([]);
 
-The Deals page and DealFilters component already have dropdown filters with sorting and filtering by customer.
+  useEffect(() => {
+    fetchCustomers();
+    fetchUsers();
+  }, []);
 
-The user wants to add filters to the deals page similar to the task page, but the task page currently does not have filters implemented.
+  const fetchCustomers = async () => {
+    try {
+      const response = await customerApi.getAll();
+      setCustomers(response.data);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    }
+  };
 
-So the user likely means to add filters to the deals page similar to what was created for the task page filters (maybe in a different branch or planned feature).
+  const fetchUsers = async () => {
+    try {
+      const response = await userApi.getAll();
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
 
-Given this, I should:
-- Check if there is a TaskFilters component or similar that implements filters for tasks.
-- If not, I can check the useTasks hook and the Tasks page to see if any filtering UI or logic exists.
-- If no filters exist for tasks, then the user might want me to add filters to deals page similar to the filters that exist or are planned for tasks.
-- Since the deals page already has filters, maybe the user wants to extend the filters on deals page to have more options or a more generic dropdown filter with value input and asc/desc order.
+  const handleFilterChange = (filterName, value) => {
+    onFilterChange({ ...currentFilters, [filterName]: value });
+  };
 
-I will search for TaskFilters component or any filter components related to tasks.
+  return (
+    <div className="bg-white p-4 rounded-lg shadow mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Customer
+          </label>
+          <select
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            value={currentFilters.customerId || ''}
+            onChange={(e) => handleFilterChange('customerId', e.target.value)}
+          >
+            <option value="">All Customers</option>
+            {customers.map((customer) => (
+              <option key={customer.id} value={customer.id}>
+                {customer.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-If none found, I will check the useTasks hook for any filtering logic.
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Assigned To
+          </label>
+          <select
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            value={currentFilters.assignedTo || ''}
+            onChange={(e) => handleFilterChange('assignedTo', e.target.value)}
+          >
+            <option value="">All Users</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-Then I will plan to extend the DealFilters component and useDeals hook to support more filter options with dropdown and value input, and asc/desc order.
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <select
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            value={currentFilters.status || ''}
+            onChange={(e) => handleFilterChange('status', e.target.value)}
+          >
+            <option value="">All Status</option>
+            <option value="NEW">New</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="WON">Won</option>
+            <option value="LOST">Lost</option>
+          </select>
+        </div>
 
-I will also check the backend service for deals to see if it supports filtering and sorting by different fields.
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Priority
+          </label>
+          <select
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            value={currentFilters.priority || ''}
+            onChange={(e) => handleFilterChange('priority', e.target.value)}
+          >
+            <option value="">All Priority</option>
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-I will search for "TaskFilters" component or "Filters" in the frontend components folder.
-
-</thinking>
-
-<search_code>
-<query>Filters</query>
-<path>CRM Dashboard/crm-dashboard/src/components</path>
-}
+export default DealFilters;

@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import AutoLogoutHandler from './components/AutoLogoutHandler';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import Deals from './pages/Deals';
@@ -202,6 +203,10 @@ const AppContent = () => {
 function App() {
   return (
     <AuthProvider>
+      <AutoLogoutHandler 
+        inactivityTimeout={4 * 60 * 1000} // 5 minutes
+        gracePeriod={1 * 60 * 1000} // 5 minutes grace period
+      />
       <Toaster position="top-right" />
       <Routes>
         <Route path="/login" element={<Login />} />
