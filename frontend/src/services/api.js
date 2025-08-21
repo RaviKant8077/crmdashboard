@@ -221,25 +221,27 @@ export const taskApi = {
 export const contactApi = {
   // Get all contacts
   getAllContacts: async () => {
-    const response = await fetch(`${API_BASE_URL}/contacts/allContacts`);
+    const response = await fetch(`${API_BASE_URL}/contacts/allContact`, {
+      headers: getAuthHeaders()
+    });
     await handleApiError(response);
     return response.json();
   },
 
   // Get contact by ID
   getContactById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/contacts/${id}`);
+    const response = await fetch(`${API_BASE_URL}/contacts/${id}`, {
+      headers: getAuthHeaders()
+    });
     await handleApiError(response);
     return response.json();
   },
 
   // Create a new contact
   createContact: async (contactData) => {
-    const response = await fetch(`${API_BASE_URL}/contacts/create/contact`, {
+    const response = await fetch(`${API_BASE_URL}/contacts/createContact`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(contactData),
     });
     await handleApiError(response);
@@ -250,9 +252,7 @@ export const contactApi = {
   updateContact: async (id, contactData) => {
     const response = await fetch(`${API_BASE_URL}/contacts/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(contactData),
     });
     await handleApiError(response);
@@ -263,6 +263,7 @@ export const contactApi = {
   deleteContact: async (id) => {
     const response = await fetch(`${API_BASE_URL}/contacts/${id}`, {
       method: 'DELETE',
+      headers: getAuthHeaders()
     });
     await handleApiError(response);
     // Return empty object for DELETE requests since they return 204 No Content

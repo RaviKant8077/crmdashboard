@@ -20,7 +20,7 @@ public interface TaskMapper {
     @Mapping(target = "customerName", expression = "java(mapCustomerToName(task.getCustomer()))")
     TaskDTO toDto(Task task);
 
-   @Mapping(target = "customer", expression = "java(createCustomerFromIds(taskDTO.getCustomerId(), taskDTO.getCustomerName()))")
+    @Mapping(target = "customer", expression = "java(createCustomerFromIds(taskDTO.getCustomerId(), taskDTO.getCustomerName()))")
     Task toEntity(TaskDTO taskDTO);
 
     default Customer createCustomerFromIds(Long customerId, String customerName) {

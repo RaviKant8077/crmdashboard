@@ -3,10 +3,12 @@ package com.example.crm.service;
 import com.example.crm.dto.ContactDTO;
 import com.example.crm.mapper.ContactMapper;
 import com.example.crm.model.Contact;
+import com.example.crm.model.Customer;
 import com.example.crm.repository.ContactRepository;
 import com.example.crm.service.ContactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,19 +25,37 @@ public class ContactServiceImpl implements ContactService {
     @Override
     public ContactDTO createContact(ContactDTO contactDTO) {
         Contact contact = contactMapper.toEntity(contactDTO);
-        return contactMapper.toDto(contactRepository.save(contact));
+        return contactMapper.toDTO(contactRepository.save(contact));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ContactDTO getContactById(Long id) {
         Contact contact = contactRepository.findById(id).orElseThrow();
-        return contactMapper.toDto(contact);
+        // Ensure customer relationship is loaded
+        if (contact.getCustomer() != null) {
+            contact.getCustomer().getId();
+        }
+        return contactMapper.toDTO(contact);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ContactDTO> getAllContacts() {
-        return contactRepository.findAll().stream()
-                .map(contactMapper::toDto)
+        System.out.println("=== DEBUG: getAllContacts called ===");
+        List<Contact> contacts = contactRepository.findAllWithCustomer();
+        System.out.println("=== DEBUG: Found " + contacts.size() + " contacts ===");
+        
+        if (contacts.isEmpty()) {
+            System.out.println("=== DEBUG: No contacts found in database ===");
+        } else {
+            contacts.forEach(contact -> {
+                System.out.println("Contact: " + contact.getName() + " - " + contact.getEmail());
+            });
+        }
+        
+        return contacts.stream()
+                .map(contactMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -46,7 +66,15 @@ public class ContactServiceImpl implements ContactService {
         contact.setEmail(contactDTO.getEmail());
         contact.setPhone(contactDTO.getPhone());
         contact.setPosition(contactDTO.getPosition());
-        return contactMapper.toDto(contactRepository.save(contact));
+        
+        // Set customer if customerId is provided
+        if (contactDTO.getCustomerId() != null) {
+            Customer customer = new Customer();
+            customer.setId(contactDTO.getCustomerId());
+            contact.setCustomer(customer);
+        }
+        
+        return contactMapper.toDTO(contactRepository.save(contact));
     }
 
     @Override
@@ -55,9 +83,10 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ContactDTO> getContactsByCustomerId(Long customerId) {
-        return contactRepository.findByCustomerId(customerId).stream()
-                .map(contactMapper::toDto)
+        return contactRepository.findByCustomerIdWithCustomer(customerId).stream()
+                .map(contactMapper::toDTO)
                 .collect(Collectors.toList());
     }
 }

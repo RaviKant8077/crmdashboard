@@ -1,24 +1,151 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
+import { useContacts } from '../hooks/useContacts';
+import { useCustomers } from '../hooks/useCustomers';
+import EnhancedContactTable from '../components/EnhancedContactTable';
+import ContactForm from '../components/ContactForm';
+import ContactFilters from '../components/ContactFilters';
+import Modal from '../components/Modal';
+import toast from 'react-hot-toast';
 
 const Contacts = () => {
+  const { contacts, loading, error, createContact, updateContact, deleteContact, refetch } = useContacts();
+  const { customers } = useCustomers();
+  const [showModal, setShowModal] = useState(false);
+  const [editingContact, setEditingContact] = useState(null);
+  const [filteredContacts, setFilteredContacts] = useState([]);
+  const [filters, setFilters] = useState({
+    name: '',
+    email: '',
+    customerId: '',
+    sortField: 'name',
+    sortDirection: 'asc'
+  });
+
+  useEffect(() => {
+    // Apply filters to contacts
+    let filtered = contacts;
+    
+    if (filters.name) {
+      filtered = filtered.filter(contact => 
+        contact.name.toLowerCase().includes(filters.name.toLowerCase())
+      );
+    }
+    
+    if (filters.email) {
+      filtered = filtered.filter(contact => 
+        contact.email?.toLowerCase().includes(filters.email.toLowerCase())
+      );
+    }
+    
+    if (filters.customerId) {
+      filtered = filtered.filter(contact => 
+        contact.customerId === parseInt(filters.customerId)
+      );
+    }
+    
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      const fieldA = a[filters.sortField]?.toLowerCase() || '';
+      const fieldB = b[filters.sortField]?.toLowerCase() || '';
+      
+      if (filters.sortDirection === 'asc') {
+        return fieldA.localeCompare(fieldB);
+      } else {
+        return fieldB.localeCompare(fieldA);
+      }
+    });
+    
+    setFilteredContacts(sorted);
+  }, [contacts, filters]);
+
+  const handleAddContact = () => {
+    setEditingContact(null);
+    setShowModal(true);
+  };
+
+  const handleEditContact = (contact) => {
+    setEditingContact(contact);
+    setShowModal(true);
+  };
+
+  const handleDeleteContact = async (contactId) => {
+    if (window.confirm('Are you sure you want to delete this contact?')) {
+      try {
+        await deleteContact(contactId);
+        toast.success('Contact deleted successfully');
+      } catch (error) {
+        toast.error('Failed to delete contact');
+      }
+    }
+  };
+
+  const handleFormSubmit = async (formData) => {
+    try {
+      if (editingContact) {
+        await updateContact(editingContact.id, formData);
+        toast.success('Contact updated successfully');
+      } else {
+        await createContact(formData);
+        toast.success('Contact created successfully');
+      }
+      setShowModal(false);
+    } catch (error) {
+      toast.error('Failed to save contact');
+    }
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingContact(null);
+  };
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Contacts</h1>
-        <button className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center">
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-          </svg>
+        <button
+          onClick={handleAddContact}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center"
+        >
+          <Plus className="w-5 h-5 mr-2" />
           Add Contact
         </button>
       </div>
-      
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="p-6">
-          <p className="text-gray-700">Contact management features will be implemented here.</p>
-          <p className="text-gray-700 mt-2">This page will show a list of contacts, with options to create, edit, and delete contacts.</p>
+
+      <ContactFilters 
+        onFilterChange={handleFilterChange} 
+        customers={customers} 
+      />
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
         </div>
-      </div>
+      )}
+
+      <EnhancedContactTable
+        contacts={filteredContacts}
+        onEdit={handleEditContact}
+        onDelete={handleDeleteContact}
+        loading={loading}
+      />
+
+      <Modal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        title={editingContact ? 'Edit Contact' : 'Add New Contact'}
+      >
+        <ContactForm
+          contact={editingContact}
+          onSubmit={handleFormSubmit}
+          onCancel={handleCloseModal}
+        />
+      </Modal>
     </div>
   );
 };

@@ -31,20 +31,46 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = null;
         String jwt = null;
 
+        System.err.println("=== JWT FILTER DEBUG ===");
+        System.err.println("Request URI: " + request.getRequestURI());
+        System.err.println("Authorization header: " + (authHeader != null ? "Present" : "Missing"));
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
-        }
-
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.isTokenValid(jwt, userDetails.getUsername())) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            System.err.println("JWT Token: " + jwt.substring(0, Math.min(20, jwt.length())) + "...");
+            
+            try {
+                username = jwtUtil.extractUsername(jwt);
+                System.err.println("Extracted username: " + username);
+                
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    boolean isValid = jwtUtil.isTokenValid(jwt, userDetails.getUsername());
+                    System.err.println("Token validation result: " + isValid);
+                    
+                    if (isValid) {
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                        System.err.println("Authentication set successfully");
+                    } else {
+                        System.err.println("Token validation failed - sending 401");
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("{\"error\":\"Invalid or expired token\"}");
+                        return; // Stop the filter chain
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("ERROR in JWT processing: " + e.getMessage());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("{\"error\":\"Invalid token format\"}");
+                return; // Stop the filter chain
             }
+        } else if (authHeader != null) {
+            System.err.println("Invalid Authorization header format");
         }
 
+        System.err.println("=== END JWT FILTER DEBUG ===");
         filterChain.doFilter(request, response);
     }
 }
