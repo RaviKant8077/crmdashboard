@@ -4,6 +4,8 @@ import com.example.crm.dto.NoteDTO;
 import com.example.crm.mapper.NoteMapper;
 import com.example.crm.model.Note;
 import com.example.crm.repository.NoteRepository;
+import com.example.crm.repository.CustomerRepository;
+import com.example.crm.repository.DealRepository;
 import com.example.crm.service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,11 +20,30 @@ public class NoteServiceImpl implements NoteService {
     private NoteRepository noteRepository;
 
     @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private DealRepository dealRepository;
+
+    @Autowired
     private NoteMapper noteMapper;
 
     @Override
     public NoteDTO createNote(NoteDTO noteDTO) {
         Note note = noteMapper.toEntity(noteDTO);
+        
+        // Handle customer relationship
+        if (noteDTO.getCustomerId() != null) {
+            customerRepository.findById(noteDTO.getCustomerId())
+                .ifPresent(note::setCustomer);
+        }
+        
+        // Handle deal relationship
+        if (noteDTO.getDealId() != null) {
+            dealRepository.findById(noteDTO.getDealId())
+                .ifPresent(note::setDeal);
+        }
+        
         return noteMapper.toDto(noteRepository.save(note));
     }
 
@@ -43,7 +64,23 @@ public class NoteServiceImpl implements NoteService {
     public NoteDTO updateNote(Long id, NoteDTO noteDTO) {
         Note note = noteRepository.findById(id).orElseThrow();
         note.setContent(noteDTO.getContent());
-        note.setCreatedAt(noteDTO.getCreatedAt());
+        
+        // Handle customer relationship update
+        if (noteDTO.getCustomerId() != null) {
+            customerRepository.findById(noteDTO.getCustomerId())
+                .ifPresent(note::setCustomer);
+        } else {
+            note.setCustomer(null); // Clear customer if null
+        }
+        
+        // Handle deal relationship update
+        if (noteDTO.getDealId() != null) {
+            dealRepository.findById(noteDTO.getDealId())
+                .ifPresent(note::setDeal);
+        } else {
+            note.setDeal(null); // Clear deal if null
+        }
+        
         return noteMapper.toDto(noteRepository.save(note));
     }
 

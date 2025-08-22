@@ -337,25 +337,27 @@ export const userApi = {
 export const noteApi = {
   // Get all notes
   getAllNotes: async () => {
-    const response = await fetch(`${API_BASE_URL}/notes/allNotes`);
+    const response = await fetch(`${API_BASE_URL}/notes/getAllNotes`, {
+      headers: getAuthHeaders()
+    });
     await handleApiError(response);
     return response.json();
   },
 
   // Get note by ID
   getNoteById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/notes/${id}`);
+    const response = await fetch(`${API_BASE_URL}/notes/${id}`, {
+      headers: getAuthHeaders()
+    });
     await handleApiError(response);
     return response.json();
   },
 
   // Create a new note
   createNote: async (noteData) => {
-    const response = await fetch(`${API_BASE_URL}/notes/create/note`, {
+    const response = await fetch(`${API_BASE_URL}/notes/createNote`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(noteData),
     });
     await handleApiError(response);
@@ -366,9 +368,7 @@ export const noteApi = {
   updateNote: async (id, noteData) => {
     const response = await fetch(`${API_BASE_URL}/notes/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(noteData),
     });
     await handleApiError(response);
@@ -379,8 +379,9 @@ export const noteApi = {
   deleteNote: async (id) => {
     const response = await fetch(`${API_BASE_URL}/notes/${id}`, {
       method: 'DELETE',
+      headers: getAuthHeaders(),
     });
     await handleApiError(response);
-    return response.json();
+    return response.status === 204 ? {} : response.json();
   },
 };

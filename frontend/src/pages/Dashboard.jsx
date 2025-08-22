@@ -1,17 +1,23 @@
 import React, { useEffect } from 'react';
 import { useCustomers } from '../hooks/useCustomers';
 import { useDeals } from '../hooks/useDeals';
+import { useContacts } from '../hooks/useContacts';
+import { useTasks } from '../hooks/useTasks';
 
 const Dashboard = () => {
   const { customers, loading: customersLoading, error: customersError, fetchCustomers } = useCustomers();
   const { deals, loading: dealsLoading, error: dealsError, fetchDeals } = useDeals();
+  const { contacts, loading: contactsLoading, error: contactsError, refetch: fetchContacts } = useContacts();
+  const { tasks, loading: tasksLoading, error: tasksError, refetch: fetchTasks } = useTasks();
 
   useEffect(() => {
     fetchCustomers();
     fetchDeals();
+    fetchContacts();
+    fetchTasks();
   }, []);
 
-  if (customersLoading || dealsLoading) {
+  if (customersLoading || dealsLoading || contactsLoading || tasksLoading) {
     return (
       <div className="p-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
@@ -22,12 +28,12 @@ const Dashboard = () => {
     );
   }
 
-  if (customersError || dealsError) {
+  if (customersError || dealsError || contactsError || tasksError) {
     return (
       <div className="p-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p>Error loading dashboard: {customersError || dealsError}</p>
+          <p>Error loading dashboard: {customersError || dealsError || contactsError || tasksError}</p>
         </div>
       </div>
     );
@@ -51,11 +57,15 @@ const Dashboard = () => {
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-700">Pending Tasks</h3>
-          <p className="text-3xl font-bold text-yellow-600">8</p>
+          <p className="text-3xl font-bold text-yellow-600">
+            {tasksLoading ? '...' : tasks.filter(task => task.status === 'Pending').length}
+          </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-700">Recent Contacts</h3>
-          <p className="text-3xl font-bold text-purple-600">12</p>
+          <h3 className="text-lg font-semibold text-gray-700">Total Contacts</h3>
+          <p className="text-3xl font-bold text-purple-600">
+            {contactsLoading ? '...' : contacts.length}
+          </p>
         </div>
       </div>
 

@@ -1,13 +1,18 @@
 package com.example.crm.mapper;
 
-import com.example.crm.dto.*;
-import com.example.crm.model.*;
+import com.example.crm.dto.NoteDTO;
+import com.example.crm.model.Note;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface NoteMapper {
-    NoteDTO toDTO(Note save);
-    Note toEntity(NoteDTO noteDTO);
+    
+    @Mapping(source = "customer.id", target = "customerId")
+    @Mapping(source = "deal.id", target = "dealId")
+    NoteDTO toDto(Note note);
 
-    NoteDTO toDto(Note save);
+    @Mapping(target = "customer", ignore = true)
+    @Mapping(target = "deal", ignore = true)
+    Note toEntity(NoteDTO noteDTO);
 }
