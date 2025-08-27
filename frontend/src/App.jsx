@@ -1,23 +1,74 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AutoLogoutHandler from './components/AutoLogoutHandler';
-import Dashboard from './pages/Dashboard';
+import ThemeToggle from './components/ThemeToggle';
 import Customers from './pages/Customers';
 import Deals from './pages/Deals';
 import Tasks from './pages/Tasks';
 import Contacts from './pages/Contacts';
 import Notes from './pages/Notes';
+import Users from './pages/Users';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import SearchResults from './pages/SearchResults';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Careers from './pages/Careers';
+import PublicLayout from './components/PublicLayout';
+import { searchGlobal } from './services/api';
 
-// Main App Component with Sidebar
+// Main App Component with Sidebar (Protected Routes)
 const AppContent = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLabels, setShowLabels] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
+
+  const handleSearch = async (query) => {
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const results = await searchGlobal(query);
+      setSearchResults(results);
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    handleSearch(query);
+  };
+
+  const navigate = useNavigate();
+
+  const handleResultClick = (result) => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchResults(false);
+    
+    // Navigate to the search results page with type and id parameters
+    navigate(`/search-results?type=${result.type}&id=${result.id}`);
+  };
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -33,7 +84,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-gray-800 text-white transition-transform duration-300 ease-in-out transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:inset-0`}>
         <div className="flex items-center justify-center h-16 bg-gray-900">
@@ -106,47 +157,109 @@ const AppContent = () => {
               </svg>
               {showLabels && <span>Notes</span>}
             </Link>
+            <Link 
+              to="/users" 
+              className={`flex items-center px-4 py-2 mt-1 ${isActive('/users') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+              </svg>
+              {showLabels && <span>Users</span>}
+            </Link>
           </nav>
         </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="flex items-center justify-between p-4 bg-white border-b">
+        {/* Header with Search */}
+        <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
           <button 
             onClick={toggleSidebar}
-            className="md:hidden text-gray-500 focus:outline-none"
+            className="md:hidden text-gray-500 dark:text-gray-400 focus:outline-none"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </button>
-          <h2 className="text-xl font-semibold text-gray-800">
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/about" 
+              className={`px-3 py-1 rounded-md text-sm font-medium ${isActive('/about') ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+            >
+              About Us
+            </Link>
+            <Link 
+              to="/contact" 
+              className={`px-3 py-1 rounded-md text-sm font-medium ${isActive('/contact') ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+            >
+              Contact Us
+            </Link>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
             {location.pathname === '/' && 'Dashboard'}
             {location.pathname === '/customers' && 'Customers'}
             {location.pathname === '/deals' && 'Deals'}
             {location.pathname === '/tasks' && 'Tasks'}
             {location.pathname === '/contacts' && 'Contacts'}
             {location.pathname === '/notes' && 'Notes'}
+            {location.pathname === '/users' && 'Users'}
+            {location.pathname === '/about' && 'About Us'}
+            {location.pathname === '/contact' && 'Contact Us'}
           </h2>
-          <div className="flex items-center space-x-4">
-            <button className="text-gray-500 hover:text-gray-700">
+          <div className="flex items-center space-x-6">
+            {/* Search Input */}
+            <div className="relative">
+              <input 
+                type="text" 
+                value={searchQuery} 
+                onChange={handleSearchChange} 
+                placeholder="Search..." 
+                className="border rounded-md p-2 w-48 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+              />
+              {isSearching && (
+                <span className="absolute right-2 top-2 text-gray-400 dark:text-gray-500">Loading...</span>
+              )}
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute z-10 bg-white dark:bg-gray-700 border rounded-md shadow-lg mt-1 w-full max-h-60 overflow-y-auto">
+                  {searchResults.map((result, index) => (
+                    <div 
+                      key={index} 
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer border-b last:border-b-0 border-gray-200 dark:border-gray-600"
+                      onClick={() => handleResultClick(result)}
+                    >
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{result.name}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{result.type}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Theme Toggle */}
+            <div className="flex-shrink-0">
+              <ThemeToggle />
+            </div>
+            
+            {/* Notification Icon */}
+            <button className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex-shrink-0 relative z-10">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
               </svg>
             </button>
-            <div className="relative group">
-              <button className="flex items-center text-gray-500 hover:text-gray-700">
+            
+            {/* User Profile Dropdown */}
+            <div className="relative group flex-shrink-0">
+              <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                 <img className="w-8 h-8 rounded-full" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}`} alt={user?.name || 'User'} />
               </button>
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                <div className="px-4 py-2 border-b">
-                  <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
-                  <p className="text-xs text-gray-500">{user?.email || 'user@example.com'}</p>
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-600">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.name || 'User'}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || 'user@example.com'}</p>
                 </div>
                 <button 
                   onClick={logout}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center"
                   aria-label="Logout"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -192,6 +305,14 @@ const AppContent = () => {
                 <Notes />
               </ProtectedRoute>
             } />
+            <Route path="/users" element={
+              <ProtectedRoute>
+                <Users />
+              </ProtectedRoute>
+            } />
+            <Route path="/search-results" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
+            <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
+            <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>
@@ -199,21 +320,52 @@ const AppContent = () => {
   );
 };
 
+// Public Routes Component
+const PublicRoutes = () => {
+  return (
+    <PublicLayout>
+      <Routes>
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/careers" element={<Careers />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Navigate to="/about" replace />} />
+        <Route path="/*" element={<Navigate to="/about" replace />} />
+      </Routes>
+    </PublicLayout>
+  );
+};
+
 // Main App Component
 function App() {
   return (
-    <AuthProvider>
-      <AutoLogoutHandler 
-        inactivityTimeout={4 * 60 * 1000} // 5 minutes
-        gracePeriod={1 * 60 * 1000} // 5 minutes grace period
-      />
-      <Toaster position="top-right" />
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/*" element={<AppContent />} />
-      </Routes>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AutoLogoutHandler 
+          inactivityTimeout={4 * 60 * 1000} // 5 minutes
+          gracePeriod={1 * 60 * 1000} // 5 minutes grace period
+        />
+        <Toaster position="top-right" />
+        <AppRouter />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
+
+// Router component that uses the auth context
+const AppRouter = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  return user ? <AppContent /> : <PublicRoutes />;
+};
 
 export default App;

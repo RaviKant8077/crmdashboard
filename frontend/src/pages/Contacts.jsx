@@ -107,10 +107,10 @@ const Contacts = () => {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Contacts</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Contacts</h1>
         <button
           onClick={handleAddContact}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center dark:bg-indigo-700 dark:hover:bg-indigo-800"
         >
           <Plus className="w-5 h-5 mr-2" />
           Add Contact
@@ -123,7 +123,7 @@ const Contacts = () => {
       />
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}

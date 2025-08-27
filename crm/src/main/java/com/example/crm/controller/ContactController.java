@@ -32,7 +32,7 @@ public class ContactController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT', 'USER')")
-    @GetMapping("/{id}")
+@GetMapping("/{id}")
     public ResponseEntity<ContactDTO> getContactById(@PathVariable Long id) {
         ContactDTO contact = contactService.getContactById(id);
         return new ResponseEntity<>(contact, HttpStatus.OK);
@@ -56,6 +56,20 @@ public class ContactController {
     @GetMapping("/byCustomer/{customerId}")
     public ResponseEntity<List<ContactDTO>> getContactsByCustomerId(@PathVariable Long customerId) {
         List<ContactDTO> contacts = contactService.getContactsByCustomerId(customerId);
+        return new ResponseEntity<>(contacts, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT', 'USER')")
+    @GetMapping("/search")
+    public ResponseEntity<List<ContactDTO>> searchByName(@RequestParam String name) {
+        List<ContactDTO> contacts = contactService.searchByName(name);
+        return new ResponseEntity<>(contacts, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT', 'USER')")
+    @GetMapping("/search/global")
+    public ResponseEntity<List<ContactDTO>> globalSearch(@RequestParam String query) {
+        List<ContactDTO> contacts = contactService.searchByName(query);
         return new ResponseEntity<>(contacts, HttpStatus.OK);
     }
 }

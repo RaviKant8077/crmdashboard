@@ -1,7 +1,7 @@
 package com.example.crm.security;
 
 import com.example.crm.dto.UserDTO;
-import com.example.crm.security.AuthResponse;
+import com.example.crm.model.Role;
 import com.example.crm.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +28,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+        System.out.println("Attempting to authenticate user: " + authRequest.getUsername());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -36,10 +37,43 @@ public class AuthController {
             );
 
             String token = jwtUtil.generateToken(authRequest.getUsername());
-            return ResponseEntity.ok(new AuthResponse(token));
+            UserDTO user = userService.findByUsername(authRequest.getUsername());
+            
+            if (user == null) {
+                return ResponseEntity.status(404).body("User not found");
+            }
+
+            return ResponseEntity.ok(new AuthResponse(token, user));
 
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Invalid username or password");
+        }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody AuthRequest authRequest) {
+        try {
+            // Check if username already exists
+            if (userService.findByUsername(authRequest.getUsername()) != null) {
+                return ResponseEntity.status(400).body("Username already exists");
+            }
+
+            // Create new user with default USER role
+            UserDTO newUser = new UserDTO();
+            newUser.setUsername(authRequest.getUsername());
+            newUser.setPassword(authRequest.getPassword());
+            newUser.setEmail(authRequest.getEmail());
+            newUser.setRoles(java.util.Set.of(Role.USER)); // Default role
+            
+            UserDTO createdUser = userService.createUser(newUser);
+            
+            // Generate token for the new user
+            String token = jwtUtil.generateToken(authRequest.getUsername());
+            
+            return ResponseEntity.ok(new AuthResponse(token, createdUser));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Registration failed: " + e.getMessage());
         }
     }
 

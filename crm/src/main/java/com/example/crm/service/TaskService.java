@@ -12,4 +12,6 @@ public interface TaskService {
 
     List<TaskDTO> getTasksByCustomerId(Long customerId);
     List<TaskDTO> getTasksByStatus(String status);
+
+    List<TaskDTO> searchByTitle(String query);
 }

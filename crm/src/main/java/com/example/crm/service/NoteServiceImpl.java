@@ -97,6 +97,13 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
+    public List<NoteDTO> searchBySubject(String query) {
+        return noteRepository.searchBySubject(query).stream()
+                .map(noteMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<NoteDTO> getNotesByDealId(Long dealId) {
         return noteRepository.findByDealId(dealId).stream()
                 .map(noteMapper::toDto)

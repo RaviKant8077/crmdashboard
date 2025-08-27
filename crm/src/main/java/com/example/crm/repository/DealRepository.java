@@ -18,4 +18,7 @@ public interface DealRepository extends JpaRepository<Deal, Long> {
     @Query("SELECT d FROM Deal d WHERE d.dealDate BETWEEN :startDate AND :endDate")
     List<Deal> findByDealDateRange(@Param("startDate") LocalDate startDate,
                                    @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT d FROM Deal d WHERE LOWER(d.dealName) LIKE LOWER(CONCAT('%', :dealName, '%'))")
+    List<Deal> searchByTitle(@Param("dealName") String dealName);
 }

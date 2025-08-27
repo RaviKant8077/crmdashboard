@@ -11,4 +11,6 @@ public interface ContactService {
     void deleteContact(Long id);
 
     List<ContactDTO> getContactsByCustomerId(Long customerId);
+
+    List<ContactDTO> searchByName(String query);
 }

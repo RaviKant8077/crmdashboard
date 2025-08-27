@@ -97,4 +97,11 @@ public class CustomerServiceImpl implements CustomerService {
                 .map(customerMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<CustomerDTO> searchByName(String query) {
+        return customerRepository.searchByName(query).stream().
+                map(customerMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }

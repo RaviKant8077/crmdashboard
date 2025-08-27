@@ -1,8 +1,6 @@
 package com.example.crm.dto;
 
 import com.example.crm.model.Role;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.Set;
+import java.util.List;
 
 @Data
 public class UserDTO {
@@ -23,10 +22,19 @@ public class UserDTO {
     @Email
     private String email;
 
-    @Enumerated(EnumType.STRING)
     @NotNull(message = "Role must be specified")
     private Set<Role> roles;
 
     @NotBlank(message = "password must be alphanumeric")
     private String password;
+
+    // Customer information for display purposes
+    private List<CustomerInfo> customers;
+    
+    @Data
+    public static class CustomerInfo {
+        private Long id;
+        private String name;
+        private String email;
+    }
 }

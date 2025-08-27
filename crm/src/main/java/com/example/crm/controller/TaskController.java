@@ -65,4 +65,18 @@ public class TaskController {
         List<TaskDTO> tasks = taskService.getTasksByStatus(status);
         return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search")
+    public ResponseEntity<List<TaskDTO>> searchByTitle(@RequestParam String title) {
+        List<TaskDTO> tasks = taskService.searchByTitle(title);
+        return new ResponseEntity<>(tasks, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search/global")
+    public ResponseEntity<List<TaskDTO>> globalSearch(@RequestParam String query) {
+        List<TaskDTO> tasks = taskService.searchByTitle(query);
+        return new ResponseEntity<>(tasks, HttpStatus.OK);
+    }
 }

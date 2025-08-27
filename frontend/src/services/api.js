@@ -1,5 +1,9 @@
+import { encryptSensitiveFields, decryptSensitiveFields } from '../utils/encryption';
+import { cache, apiCache } from '../utils/cache';
+
 // Base URL for the API
 const API_BASE_URL = 'http://localhost:8083/api';
+const SENSITIVE_FIELDS = ['password', 'token', 'email']; // Add more fields as needed
 
 // Helper function to handle API errors
 const handleApiError = async (response) => {
@@ -41,10 +45,11 @@ export const customerApi = {
 
   // Create a new customer
   createCustomer: async (customerData) => {
+    const encryptedData = encryptSensitiveFields(customerData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/customers/create/customer`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(customerData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -52,10 +57,11 @@ export const customerApi = {
 
   // Update a customer
   updateCustomer: async (id, customerData) => {
+    const encryptedData = encryptSensitiveFields(customerData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/customers/update/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(customerData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -124,17 +130,20 @@ export const dealApi = {
 
   // Get deal by ID
   getDealById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/deals/getDealBYId/${id}`);
+    const response = await fetch(`${API_BASE_URL}/deals/getDealBYId/${id}`,{
+      headers: getAuthHeaders()
+    });
     await handleApiError(response);
     return response.json();
   },
 
   // Create a new deal
   createDeal: async (dealData) => {
+    const encryptedData = encryptSensitiveFields(dealData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/deals/createDeal`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(dealData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -142,10 +151,11 @@ export const dealApi = {
 
   // Update a deal
   updateDeal: async (id, dealData) => {
+    const encryptedData = encryptSensitiveFields(dealData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/deals/updateDealById/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(dealData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -185,10 +195,11 @@ export const taskApi = {
 
   // Create a new task
   createTask: async (taskData) => {
+    const encryptedData = encryptSensitiveFields(taskData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/tasks/createTask`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(taskData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -196,10 +207,11 @@ export const taskApi = {
 
   // Update a task
   updateTask: async (id, taskData) => {
+    const encryptedData = encryptSensitiveFields(taskData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/tasks/update/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(taskData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -239,10 +251,11 @@ export const contactApi = {
 
   // Create a new contact
   createContact: async (contactData) => {
+    const encryptedData = encryptSensitiveFields(contactData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/contacts/createContact`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(contactData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -250,10 +263,11 @@ export const contactApi = {
 
   // Update a contact
   updateContact: async (id, contactData) => {
+    const encryptedData = encryptSensitiveFields(contactData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/contacts/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(contactData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -293,10 +307,11 @@ export const userApi = {
 
   // Create a new user
   createUser: async (userData) => {
+    const encryptedData = encryptSensitiveFields(userData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/users/createUser`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(userData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -304,10 +319,11 @@ export const userApi = {
 
   // Update a user
   updateUser: async (id, userData) => {
+    const encryptedData = encryptSensitiveFields(userData, SENSITIVE_FIELDS);
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(userData),
+      body: JSON.stringify(encryptedData),
     });
     await handleApiError(response);
     return response.json();
@@ -384,4 +400,128 @@ export const noteApi = {
     await handleApiError(response);
     return response.status === 204 ? {} : response.json();
   },
+};
+
+export const searchGlobal = async (query) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/search/global?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders()
+    });
+    
+    await handleApiError(response);
+    const results = await response.json();
+    
+    // Format results with proper type labels
+    return results.map(result => {
+      let type = 'Unknown';
+      let name = 'Unknown';
+      
+      // Determine entity type and name based on available fields
+      // Use more specific checks to avoid ambiguity
+      if (result.email && result.position) {
+        // Contact has both email and position fields
+        type = 'Contact';
+        name = result.name;
+      } else if (result.name && result.company && !result.email) {
+        // Customer has name and company but no email (contacts have email)
+        type = 'Customer';
+        name = result.name;
+      } else if (result.dealName) {
+        type = 'Deal';
+        name = result.dealName;
+      } else if (result.description && result.dueDate) {
+        // Task has description and dueDate
+        type = 'Task';
+        name = result.description;
+      } else if (result.subject && result.content) {
+        // Note has subject and content
+        type = 'Note';
+        name = result.subject;
+      } else if (result.username) {
+        type = 'User';
+        name = result.username;
+      } else if (result.name && result.email) {
+        // If it has name and email but no position, it's likely a customer
+        type = 'Customer';
+        name = result.name;
+      }
+      
+      return {
+        ...result,
+        type: type,
+        name: name,
+        displayName: `${type}: ${name}`,
+        id: result.id // Ensure the ID is included for navigation
+      };
+    });
+  } catch (error) {
+    console.error('Global search error:', error);
+    return [];
+  }
+};
+
+// Entity-specific search functions
+export const searchApi = {
+  // Global search
+  global: async (query) => {
+    const response = await fetch(`${API_BASE_URL}/search/global?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders()
+    });
+    await handleApiError(response);
+    return response.json();
+  },
+  
+  // Customer search
+  customers: async (query) => {
+    const response = await fetch(`${API_BASE_URL}/search/customers?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders()
+    });
+    await handleApiError(response);
+    return response.json();
+  },
+  
+  // Deal search
+  deals: async (query) => {
+    const response = await fetch(`${API_BASE_URL}/search/deals?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders()
+    });
+    await handleApiError(response);
+    return response.json();
+  },
+  
+  // Task search
+  tasks: async (query) => {
+    const response = await fetch(`${API_BASE_URL}/search/tasks?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders()
+    });
+    await handleApiError(response);
+    return response.json();
+  },
+  
+  // Contact search
+  contacts: async (query) => {
+    const response = await fetch(`${API_BASE_URL}/search/contacts?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders()
+    });
+    await handleApiError(response);
+    return response.json();
+  },
+  
+  // User search
+  users: async (query) => {
+    const response = await fetch(`${API_BASE_URL}/search/users?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders()
+    });
+    await handleApiError(response);
+    return response.json();
+  },
+  
+  // Note search
+  notes: async (query) => {
+    const response = await fetch(`${API_BASE_URL}/search/notes?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders()
+    });
+    await handleApiError(response);
+    return response.json();
+  }
 };

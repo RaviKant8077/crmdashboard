@@ -5,22 +5,29 @@ import com.example.crm.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Set;
 import com.example.crm.model.Role;
 
 
 @Configuration
 public class DataSeeder {
-
+/*
     @Bean
     public CommandLineRunner seedDatabase(UserRepository userRepo, CustomerRepository customerRepo, 
                                           DealRepository dealRepo, TaskRepository taskRepo, 
-                                          ContactRepository contactRepo, NoteRepository noteRepo) {
+                                          ContactRepository contactRepo, NoteRepository noteRepo,
+                                          PasswordEncoder passwordEncoder) {
         return args -> {
-           User admin = new User(Role.ADMIN, null, "Admin User", "admin@example.com", "password", LocalDateTime.now());
+           User admin = new User();
+           admin.setUsername("manager1");
+           admin.setEmail("manager1@example.com");
+           admin.setPassword(passwordEncoder.encode("password"));
+           admin.setRoles(Set.of(Role.ADMIN));
            userRepo.save(admin);
 
             Customer customer = new Customer();
@@ -69,5 +76,5 @@ public class DataSeeder {
             note.setDeal(deal);
             noteRepo.save(note);
         };
-    }
+    }*/
 }

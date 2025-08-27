@@ -60,6 +60,13 @@ public class CustomerController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search/global")
+    public ResponseEntity<List<CustomerDTO>> globalSearch(@RequestParam String query) {
+        List<CustomerDTO> customers = customerService.searchCustomersByName(query);
+        return new ResponseEntity<>(customers, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @GetMapping("/byCityName")
     public ResponseEntity<List<CustomerDTO>> getCustomersByCity(@RequestParam String city) {
         List<CustomerDTO> customers = customerService.getCustomersByCity(city);

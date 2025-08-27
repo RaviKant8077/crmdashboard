@@ -13,4 +13,6 @@ public interface DealService {
     List<DealDTO> getDealsByCustomerId(Long customerId);
     List<DealDTO> getDealsByStage(String stage);
     List<DealDTO> sortDeals(List<DealDTO> deals, String sortBy, String sortOrder);
+
+    List<DealDTO> searchByTitle(String query);
 }

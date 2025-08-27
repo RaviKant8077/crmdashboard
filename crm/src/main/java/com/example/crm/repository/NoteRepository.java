@@ -13,4 +13,7 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     
     @Query("SELECT n FROM Note n WHERE n.deal.id = :dealId")
     List<Note> findByDealId(@Param("dealId") Long dealId);
+
+    @Query("SELECT n FROM Note n WHERE LOWER(n.content) LIKE LOWER(CONCAT('%', :content, '%'))")
+    List<Note> searchBySubject(@Param("content") String content);
 }

@@ -6,6 +6,7 @@ import com.example.crm.model.User;
 import com.example.crm.repository.UserRepository;
 import com.example.crm.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,21 +21,25 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public UserDTO createUser(UserDTO userDTO) {
         User user = userMapper.toEntity(userDTO);
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         return userMapper.toDto(userRepository.save(user));
     }
 
     @Override
     public UserDTO getUserById(Long id) {
-        User user = userRepository.findById(id).orElseThrow();
+        User user = userRepository.findByIdWithCustomers(id).orElseThrow();
         return userMapper.toDto(user);
     }
 
     @Override
     public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream()
+        return userRepository.findAllWithCustomers().stream()
                 .map(userMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -45,6 +50,11 @@ public class UserServiceImpl implements UserService {
         user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
         user.setRoles(userDTO.getRoles());
+        
+        // Only update password if a new one is provided
+        if (userDTO.getPassword() != null && !userDTO.getPassword().trim().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }
         return userMapper.toDto(userRepository.save(user));
     }
 
@@ -65,5 +75,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username)
                 .map(userMapper::toDto)
                 .orElse(null);
+    }
+
+    @Override
+    public List<UserDTO> searchByName(String query) {
+        return userRepository.searchByName(query).stream()
+                .map(userMapper::toDto)
+                .collect(Collectors.toList());
     }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const Login = () => {
@@ -24,7 +24,6 @@ const Login = () => {
       const result = await login(username, password);
       if (result.success) {
         toast.success('Login successful!');
-        // navigate('/') removed because useEffect handles it
       } else {
         toast.error(result.error || 'Login failed');
       }
@@ -116,6 +115,12 @@ const Login = () => {
         </div>
         
         <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-medium text-orange-600 hover:text-orange-500">
+              Register here
+            </Link>
+          </p>
           <p className="text-sm text-white/70">
             Need help? Contact the Vrindavan Seva Dham support team
           </p>

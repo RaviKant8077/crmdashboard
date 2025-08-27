@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { customerApi } from '../services/api';
 
 const DealForm = ({ deal, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,12 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
     ...deal
   });
 
+  const [customers, setCustomers] = useState([]);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   useEffect(() => {
     if (deal) {
@@ -26,6 +32,25 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
       });
     }
   }, [deal]);
+
+  const fetchCustomers = async () => {
+    console.log('Fetching customers for dropdown...');
+    try {
+      const response = await customerApi.getAllCustomers();
+      console.log('Customers for dropdown:', response);
+      // Check if response has data property or if it's the data itself
+      const customersData = response && (response.data || response);
+      if (customersData && Array.isArray(customersData)) {
+        setCustomers(customersData);
+      } else {
+        console.error('Invalid customers data format:', customersData);
+        setCustomers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching customers for dropdown:', error);
+      setCustomers([]);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -91,11 +116,21 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
   const stages = ['open', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
   const priorities = ['low', 'medium', 'high'];
 
+  // Find customer name for display when editing
+  const getCustomerName = (customerId) => {
+    if (!customerId) return '';
+    if (!customers || !Array.isArray(customers)) {
+      return '';
+    }
+    const customer = customers.find(c => c.id === parseInt(customerId));
+    return customer ? customer.name : '';
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Deal Name *
           </label>
           <input
@@ -104,14 +139,14 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${errors.name ? 'border-red-500' : ''}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100 ${errors.name ? 'border-red-500' : ''}`}
             required
           />
-          {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+          {errors.name && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
         </div>
 
         <div>
-          <label htmlFor="value" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="value" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Deal Value *
           </label>
           <input
@@ -120,17 +155,17 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
             name="value"
             value={formData.value}
             onChange={handleChange}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${errors.value ? 'border-red-500' : ''}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100 ${errors.value ? 'border-red-500' : ''}`}
             placeholder="0.00"
             step="0.01"
             min="0"
             required
           />
-          {errors.value && <p className="mt-1 text-sm text-red-600">{errors.value}</p>}
+          {errors.value && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.value}</p>}
         </div>
 
         <div>
-          <label htmlFor="stage" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="stage" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Stage
           </label>
           <select
@@ -138,7 +173,7 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
             name="stage"
             value={formData.stage}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100"
           >
             {stages.map(stage => (
               <option key={stage} value={stage}>
@@ -149,7 +184,7 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
         </div>
 
         <div>
-          <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Priority
           </label>
           <select
@@ -157,7 +192,7 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
             name="priority"
             value={formData.priority}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100"
           >
             {priorities.map(priority => (
               <option key={priority} value={priority}>
@@ -168,7 +203,7 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
         </div>
 
         <div>
-          <label htmlFor="closeDate" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="closeDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Close Date *
           </label>
           <input
@@ -177,30 +212,40 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
             name="closeDate"
             value={formData.closeDate}
             onChange={handleChange}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${errors.closeDate ? 'border-red-500' : ''}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100 ${errors.closeDate ? 'border-red-500' : ''}`}
             required
           />
-          {errors.closeDate && <p className="mt-1 text-sm text-red-600">{errors.closeDate}</p>}
+          {errors.closeDate && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.closeDate}</p>}
         </div>
 
         <div>
-          <label htmlFor="customerId" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="customerId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Customer
           </label>
-          <input
-            type="text"
+          <select
             id="customerId"
             name="customerId"
             value={formData.customerId}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder="Customer ID"
-          />
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100"
+          >
+            <option value="">Select Customer</option>
+            {customers && Array.isArray(customers) && customers.map((customer) => (
+              <option key={customer.id} value={customer.id}>
+                {customer.name}
+              </option>
+            ))}
+          </select>
+          {formData.customerId && (
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Selected: {getCustomerName(formData.customerId)}
+            </p>
+          )}
         </div>
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Description
         </label>
         <textarea
@@ -209,7 +254,7 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100"
           placeholder="Deal description..."
         />
       </div>
@@ -218,13 +263,13 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           {deal ? 'Update Deal' : 'Create Deal'}
         </button>
@@ -232,8 +277,5 @@ const DealForm = ({ deal, onSubmit, onCancel }) => {
     </form>
   );
 };
-
-const stages = ['open', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
-const priorities = ['low', 'medium', 'high'];
 
 export default DealForm;

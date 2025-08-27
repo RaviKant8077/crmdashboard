@@ -67,6 +67,13 @@ public class TaskServiceImpl implements TaskService {
                 .map(taskMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<TaskDTO> searchByTitle(String query) {
+        return taskRepository.searchByTitle(query).stream()
+                .map(taskMapper::toDto)
+                .collect(Collectors.toList());
+    }
     // New filtering method
     /*public List<TaskDTO> filterTasks(Long customerId, String status, String priority, Long assignedUserId, Date dueDat) {
         return taskRepository.findAll().stream()

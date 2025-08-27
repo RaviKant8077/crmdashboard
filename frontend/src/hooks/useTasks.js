@@ -6,6 +6,16 @@ export const useTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    customerId: null,
+    status: null,
+    priority: null,
+    assignedUserId: null,
+    dueDateFrom: null,
+    dueDateTo: null,
+    sortBy: null,
+    sortOrder: 'asc'
+  });
 
   const fetchTasks = async () => {
     try {
@@ -19,6 +29,10 @@ export const useTasks = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFilters = (newFilters) => {
+    setFilters(newFilters);
   };
 
   const createTask = async (taskData) => {
@@ -44,8 +58,6 @@ export const useTasks = () => {
         customer: taskData.customer || { id: null }
       };
       
-      console.log('Updating task with payload:', sanitizedTaskData);
-      
       const updatedTask = await taskApi.updateTask(id, sanitizedTaskData);
       
       // Force refresh the tasks list to ensure UI updates
@@ -54,7 +66,7 @@ export const useTasks = () => {
       toast.success('Task updated successfully');
       return updatedTask;
     } catch (err) {
-      console.error('Task update error:', err);
+      // Removed debug log for task update error
       toast.error('Failed to update task');
       throw err;
     }
@@ -82,6 +94,8 @@ export const useTasks = () => {
     createTask,
     updateTask,
     deleteTask,
-    refetch: fetchTasks
+    refetch: fetchTasks,
+    applyFilters,
+    filters
   };
 };

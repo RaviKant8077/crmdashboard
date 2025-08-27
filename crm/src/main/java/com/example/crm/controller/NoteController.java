@@ -52,17 +52,31 @@ public class NoteController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    // @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @GetMapping("/byCustomer/{customerId}")
     public ResponseEntity<List<NoteDTO>> getNotesByCustomerId(@PathVariable Long customerId) {
         List<NoteDTO> notes = noteService.getNotesByCustomerId(customerId);
         return new ResponseEntity<>(notes, HttpStatus.OK);
     }
 
-    // @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @GetMapping("/byDeal/{dealId}")
     public ResponseEntity<List<NoteDTO>> getNotesByDealId(@PathVariable Long dealId) {
         List<NoteDTO> notes = noteService.getNotesByDealId(dealId);
+        return new ResponseEntity<>(notes, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search")
+    public ResponseEntity<List<NoteDTO>> searchBySubject(@RequestParam String subject) {
+        List<NoteDTO> notes = noteService.searchBySubject(subject);
+        return new ResponseEntity<>(notes, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search/global")
+    public ResponseEntity<List<NoteDTO>> globalSearch(@RequestParam String query) {
+        List<NoteDTO> notes = noteService.searchBySubject(query);
         return new ResponseEntity<>(notes, HttpStatus.OK);
     }
 }

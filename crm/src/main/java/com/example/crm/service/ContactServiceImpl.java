@@ -89,4 +89,12 @@ public class ContactServiceImpl implements ContactService {
                 .map(contactMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContactDTO> searchByName(String query) {
+        return contactRepository.searchByName(query).stream()
+                .map(contactMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 }

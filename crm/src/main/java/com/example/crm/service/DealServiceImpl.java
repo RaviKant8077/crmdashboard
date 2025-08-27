@@ -105,4 +105,11 @@ public class DealServiceImpl implements DealService {
                 return deals;
         }
     }
+
+    @Override
+    public List<DealDTO> searchByTitle(String query) {
+        return dealRepository.searchByTitle(query).stream()
+                .map(dealMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }

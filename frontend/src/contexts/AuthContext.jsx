@@ -20,26 +20,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await authApi.login(username, password);
-      const { token } = response;
+      const { token, user } = response;
       
       localStorage.setItem('token', token);
-      
-      // Temporarily skip fetching current user details via /auth/me
-      // const user = await authApi.getCurrentUser();
-      
-      // Create a basic user object from login response for now
-      // This will be replaced with proper user data when /auth/me is re-enabled
-      const user = {
-        id: response.id || 1,
-        username: username,
-        email: response.email || `${username}@example.com`,
-        role: response.role || 'USER',
-        name: response.name || username
-      };
-      
       localStorage.setItem('user', JSON.stringify(user));
       
-      console.log('AuthContext: Setting user:', user);
       setUser(user);
       return { success: true };
     } catch (err) {

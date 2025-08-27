@@ -15,4 +15,6 @@ public interface CustomerService {
     List<CustomerDTO> getCustomersByCity(String city);
     List<CustomerDTO> getCustomersByState(String state);
     List<CustomerDTO> getCustomersByCountry(String country);
+
+    List<CustomerDTO> searchByName(String query);
 }

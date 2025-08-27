@@ -55,7 +55,7 @@ public class DealController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @PutMapping("/updateDealById/{id}")
+    @PutMapping("/updateDealById/{极id}")
     public ResponseEntity<DealDTO> updateDeal(@PathVariable Long id, @RequestBody DealDTO dealDTO) {
         DealDTO updatedDeal = dealService.updateDeal(id, dealDTO);
         return new ResponseEntity<>(updatedDeal, HttpStatus.OK);
@@ -79,6 +79,20 @@ public class DealController {
     @GetMapping("/byStage")
     public ResponseEntity<List<DealDTO>> getDealsByStage(@RequestParam String stage) {
         List<DealDTO> deals = dealService.getDealsByStage(stage);
+        return new ResponseEntity<>(deals, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search")
+    public ResponseEntity<List<DealDTO>> searchByTitle(@RequestParam String title) {
+        List<DealDTO> deals = dealService.searchByTitle(title);
+        return new ResponseEntity<>(deals, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search/global")
+    public ResponseEntity<List<DealDTO>> globalSearch(@RequestParam String query) {
+        List<DealDTO> deals = dealService.searchByTitle(query);
         return new ResponseEntity<>(deals, HttpStatus.OK);
     }
 }

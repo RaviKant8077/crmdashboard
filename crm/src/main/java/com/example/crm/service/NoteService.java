@@ -12,4 +12,6 @@ public interface NoteService {
 
     List<NoteDTO> getNotesByCustomerId(Long customerId);
     List<NoteDTO> getNotesByDealId(Long dealId);
+
+    List<NoteDTO> searchBySubject(String query);
 }

@@ -58,4 +58,18 @@ public class UserController {
         List<UserDTO> users = userService.getUsersByRole(role);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchByName(@RequestParam String name) {
+        List<UserDTO> users = userService.searchByName(name);
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
+    @GetMapping("/search/global")
+    public ResponseEntity<List<UserDTO>> globalSearch(@RequestParam String query) {
+        List<UserDTO> users = userService.searchByName(query);
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
 }

@@ -11,4 +11,6 @@ public interface UserService {
     void deleteUser(Long id);
     List<UserDTO> getUsersByRole(String role);
     UserDTO findByUsername(String username);
+
+    List<UserDTO> searchByName(String query);
 }
